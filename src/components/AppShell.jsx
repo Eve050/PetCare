@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/useAuth.js"
-import { cares } from "../data/example.js"
+import { useWorkspace } from "../context/useWorkspace.js"
 import { initials } from "../lib/format.js"
-import { markAlertsRead, usePrototype } from "../lib/prototypeStore.js"
 import {
   BellIcon,
   CareIcon,
@@ -38,7 +37,7 @@ function useMedia(query) {
 }
 
 function BellMenu() {
-  const { alerts, unread } = usePrototype()
+  const { alerts, unread, cares, pet, markAlertsRead } = useWorkspace()
   const [open, setOpen] = useState(false)
   const wrapRef = useRef(null)
 
@@ -82,7 +81,7 @@ function BellMenu() {
         <div className="bell-menu" role="menu">
           {alerts.length > 0 ? (
             <>
-              <p className="bell-label">Avisos sobre Max</p>
+              <p className="bell-label">Avisos</p>
               {alerts.map((alert) => (
                 <div className="bell-item static" key={alert.id}>
                   <strong>{alert.title}</strong>
@@ -92,7 +91,8 @@ function BellMenu() {
               ))}
             </>
           ) : null}
-          <p className="bell-label">Próximos cuidados</p>
+          <p className="bell-label">{pet ? `Próximos cuidados de ${pet.name}` : "Próximos cuidados"}</p>
+          {cares.length === 0 ? <p className="bell-label">Todavía no hay cuidados.</p> : null}
           {cares.map((care) => (
             <Link
               key={care.id}

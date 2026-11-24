@@ -5,7 +5,6 @@ import { PasswordField, TextField } from "../components/Fields.jsx"
 import { useAuth } from "../context/useAuth.js"
 import { useTitle } from "../lib/useTitle.js"
 import { isEmail } from "../lib/validate.js"
-import { wait } from "../lib/wait.js"
 
 export default function ForgotPassword() {
   const { hasAccount, resetPassword } = useAuth()
@@ -29,10 +28,14 @@ export default function ForgotPassword() {
       return
     }
     setLoading(true)
-    await wait()
+    const lookup = await hasAccount(email)
     setLoading(false)
-    if (!hasAccount(email)) {
-      setErrors({ email: "No hay una cuenta con ese correo en este navegador." })
+    if (!lookup.ok) {
+      setErrors({ email: lookup.message })
+      return
+    }
+    if (!lookup.exists) {
+      setErrors({ email: "No encontramos una cuenta con ese correo." })
       return
     }
     setErrors({})
@@ -42,8 +45,7 @@ export default function ForgotPassword() {
   async function onPassword(event) {
     event.preventDefault()
     setLoading(true)
-    await wait()
-    const result = resetPassword(email, password, confirm)
+    const result = await resetPassword(email, password, confirm)
     setLoading(false)
     if (!result.ok) {
       setErrors({ [result.field]: result.message })

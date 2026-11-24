@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "../context/useAuth.js"
+import { useWorkspace } from "../context/useWorkspace.js"
 import { formatPhone } from "../lib/format.js"
-import { setPrivacy, usePrototype } from "../lib/prototypeStore.js"
 import { useTitle } from "../lib/useTitle.js"
 
 function Switch({ id, checked, onChange, disabled, label }) {
@@ -24,13 +24,15 @@ function Switch({ id, checked, onChange, disabled, label }) {
 
 export default function Settings() {
   const { user, updateProfile } = useAuth()
-  const { privacy } = usePrototype()
+  const { privacy, pet, setPrivacy } = useWorkspace()
   const location = useLocation()
   const [draft, setDraft] = useState(null)
   const name = draft?.name ?? user.name
   const phone = draft?.phone ?? formatPhone(user.phone)
   const [errors, setErrors] = useState({})
   const [note, setNote] = useState("")
+  const [noteOk, setNoteOk] = useState(true)
+  const [saving, setSaving] = useState(false)
   useTitle("Ajustes")
 
   function edit(partial) {
@@ -47,9 +49,11 @@ export default function Settings() {
     }
   }, [location.hash])
 
-  function onSave(event) {
+  async function onSave(event) {
     event.preventDefault()
-    const result = updateProfile({ name, phone })
+    setSaving(true)
+    const result = await updateProfile({ name, phone })
+    setSaving(false)
     if (!result.ok) {
       setNote("")
       setErrors({ [result.field]: result.message })
@@ -57,7 +61,14 @@ export default function Settings() {
     }
     setDraft(null)
     setErrors({})
-    setNote("Guardamos tus datos en este navegador.")
+    setNoteOk(true)
+    setNote("Guardamos tus datos.")
+  }
+
+  async function toggle(partial) {
+    const result = await setPrivacy(partial)
+    setNoteOk(result.ok)
+    setNote(result.ok ? "El perfil público ya usa esta preferencia." : result.message)
   }
 
   return (
@@ -66,12 +77,12 @@ export default function Settings() {
         <div>
           <p className="eyebrow">Cuenta</p>
           <h1>Ajustes</h1>
-          <p className="lede">Tus datos de dueño y lo que puede ver quien encuentre a Max.</p>
+          <p className="lede">Tus datos de dueño y lo que puede ver quien encuentre a tu mascota.</p>
         </div>
       </header>
 
       {note ? (
-        <p className="banner banner-ok" role="status">
+        <p className={`banner ${noteOk ? "banner-ok" : "banner-error"}`} role="status">
           {note}
         </p>
       ) : null}
@@ -116,8 +127,8 @@ export default function Settings() {
           </div>
           <p className="plan-pill">{user.plan}</p>
           <div className="modal-actions left">
-            <button type="submit" className="btn btn-primary">
-              Guardar datos
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? "Guardando…" : "Guardar datos"}
             </button>
           </div>
         </form>
@@ -131,11 +142,11 @@ export default function Settings() {
             id="show-phone"
             label="Mostrar mi celular"
             checked={privacy.showPhone}
-            onChange={(value) => setPrivacy({ showPhone: value })}
+            onChange={(value) => toggle({ showPhone: value })}
           />
           <div>
             <strong>Mostrar mi celular</strong>
-            <p>Quien encuentre a Max puede llamar al número de esta cuenta.</p>
+            <p>Quien encuentre a tu mascota puede llamar al número de esta cuenta.</p>
           </div>
         </div>
         <div className="toggle-row">
@@ -143,7 +154,7 @@ export default function Settings() {
             id="show-form"
             label="Mostrar formulario de contacto"
             checked={privacy.showForm}
-            onChange={(value) => setPrivacy({ showForm: value })}
+            onChange={(value) => toggle({ showForm: value })}
           />
           <div>
             <strong>Mostrar el formulario de contacto</strong>
@@ -157,11 +168,13 @@ export default function Settings() {
             <p>En PetCare la dirección nunca se publica. Esta opción queda fija.</p>
           </div>
         </div>
-        <p className="panel-link">
-          <Link to="/perfil/max" className="text-link">
-            Ver cómo quedó el perfil público
-          </Link>
-        </p>
+        {pet ? (
+          <p className="panel-link">
+            <Link to={`/perfil/${pet.slug}`} className="text-link">
+              Ver cómo quedó el perfil público
+            </Link>
+          </p>
+        ) : null}
       </section>
     </div>
   )

@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 import AppShell from "./components/AppShell.jsx"
+import { WorkspaceProvider } from "./context/WorkspaceContext.jsx"
 import Cares from "./pages/Cares.jsx"
 import ForgotPassword from "./pages/ForgotPassword.jsx"
 import Home from "./pages/Home.jsx"
@@ -11,6 +12,14 @@ import Register from "./pages/Register.jsx"
 import Settings from "./pages/Settings.jsx"
 import { GuestOnly, RequireAuth } from "./routes/guards.jsx"
 
+function Panel() {
+  return (
+    <WorkspaceProvider>
+      <AppShell />
+    </WorkspaceProvider>
+  )
+}
+
 export default function App() {
   return (
     <Routes>
@@ -20,7 +29,7 @@ export default function App() {
         <Route path="/recuperar" element={<ForgotPassword />} />
       </Route>
       <Route element={<RequireAuth />}>
-        <Route element={<AppShell />}>
+        <Route element={<Panel />}>
           <Route path="/inicio" element={<Home />} />
           <Route path="/mascotas" element={<Pets />} />
           <Route path="/cuidados" element={<Cares />} />
@@ -28,7 +37,7 @@ export default function App() {
           <Route path="/ajustes" element={<Settings />} />
         </Route>
       </Route>
-      <Route path="/perfil/max" element={<PublicProfile />} />
+      <Route path="/perfil/:slug" element={<PublicProfile />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

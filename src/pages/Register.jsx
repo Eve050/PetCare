@@ -6,7 +6,6 @@ import Modal from "../components/Modal.jsx"
 import { useAuth } from "../context/useAuth.js"
 import { useTitle } from "../lib/useTitle.js"
 import { isEmail, isValidPhone, nameIssue, passwordIssue } from "../lib/validate.js"
-import { wait } from "../lib/wait.js"
 
 const empty = {
   name: "",
@@ -48,8 +47,7 @@ export default function Register() {
     if (Object.keys(next).length > 0) return
 
     setLoading(true)
-    await wait()
-    const result = register(form)
+    const result = await register(form)
     setLoading(false)
     if (!result.ok) {
       setErrors({ [result.field]: result.message })
@@ -62,7 +60,7 @@ export default function Register() {
     <AuthLayout>
       <p className="eyebrow">Panel del dueño</p>
       <h2>Crear cuenta</h2>
-      <p className="lede">Registra tus datos. Después verás el panel de ejemplo de Max.</p>
+      <p className="lede">Registra tus datos. Después podrás dar de alta a tu mascota y su llavero NFC.</p>
       <form onSubmit={onSubmit} noValidate aria-busy={loading}>
         <TextField
           id="name"

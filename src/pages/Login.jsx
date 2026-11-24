@@ -6,7 +6,6 @@ import { useAuth } from "../context/useAuth.js"
 import { demoCredentials } from "../lib/accounts.js"
 import { useTitle } from "../lib/useTitle.js"
 import { isEmail } from "../lib/validate.js"
-import { wait } from "../lib/wait.js"
 
 export default function Login() {
   const { login } = useAuth()
@@ -35,8 +34,7 @@ export default function Login() {
     if (Object.keys(next).length > 0) return
 
     setLoading(true)
-    await wait()
-    const result = login(email, password, remember)
+    const result = await login(email, password, remember)
     setLoading(false)
     if (!result.ok) {
       setErrors({ [result.field]: result.message })
